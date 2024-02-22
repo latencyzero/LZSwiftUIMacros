@@ -8,7 +8,7 @@ import SwiftSyntaxMacros
 
 @main
 struct
-FocusedCommandPlugin : CompilerPlugin
+LZSwiftUIMacrosPlugin : CompilerPlugin
 {
 	let providingMacros: [Macro.Type] =
 	[
