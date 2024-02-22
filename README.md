@@ -6,6 +6,10 @@ Sadly, the only one here doesn’t work, because Swift macros are not powerful e
 
 ## FocusedCommand
 
+To ease the burden of implementing focused commands, as described in this
+[article](https://jetforme.org/2024/02/SwiftUI-Menu-Commands/), I had hoped
+these macros would help:
+
 ```swift
 #FocusedCommand("Duplicate")
 ```
