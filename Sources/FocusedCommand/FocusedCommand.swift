@@ -9,3 +9,12 @@
 /// produces a tuple `(x + y, "x + y")`.
 @freestanding(expression)
 public macro stringify<T>(_ value: T) -> (T, String) = #externalMacro(module: "FocusedCommandMacros", type: "StringifyMacro")
+
+import Foundation
+
+@freestanding(expression)
+public macro URL(_ stringLiteral: String) -> URL = #externalMacro(module: "FocusedCommandMacros", type: "URLMacro")
+
+
+@freestanding(declaration)
+public macro FocusedCommand(_ inCommandName: String) = #externalMacro(module: "FocusedCommandMacros", type: "FocusedCommandMacro")

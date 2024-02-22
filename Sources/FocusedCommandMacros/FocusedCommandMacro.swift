@@ -3,31 +3,93 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-/// Implementation of the `stringify` macro, which takes an expression
-/// of any type and produces a tuple containing the value of that expression
-/// and the source code that produced the value. For example
-///
-///     #stringify(x + y)
-///
-///  will expand to
-///
-///     (x + y, "x + y")
-public struct StringifyMacro: ExpressionMacro {
-    public static func expansion(
-        of node: some FreestandingMacroExpansionSyntax,
-        in context: some MacroExpansionContext
-    ) -> ExprSyntax {
-        guard let argument = node.argumentList.first?.expression else {
-            fatalError("compiler bug: the macro does not have any arguments")
-        }
 
-        return "(\(argument), \(literal: argument.description))"
-    }
-}
+
 
 @main
-struct FocusedCommandPlugin: CompilerPlugin {
-    let providingMacros: [Macro.Type] = [
-        StringifyMacro.self,
-    ]
+struct
+FocusedCommandPlugin : CompilerPlugin
+{
+	let providingMacros: [Macro.Type] =
+	[
+		FocusedCommandMacro.self,
+	]
+}
+
+
+
+
+public
+struct
+FocusedCommandMacro : DeclarationMacro
+{
+	public
+	static
+	func
+	expansion(of inNode: some SwiftSyntax.FreestandingMacroExpansionSyntax,
+				in inContext: some SwiftSyntaxMacros.MacroExpansionContext)
+		throws
+		-> [SwiftSyntax.DeclSyntax]
+	{
+		guard
+			let argument = inNode.argumentList.first?.expression,
+			let segments = argument.as(StringLiteralExprSyntax.self)?.segments,
+			segments.count == 1,
+			case .stringSegment(let commandNameSyntax)? = segments.first
+		else
+		{
+			throw FocusedCommandMacroError.requiresStaticStringLiteral
+		}
+		
+		let commandName = commandNameSyntax.content.text
+		let minorCommandName = commandName.prefix(1).lowercased() + commandName.dropFirst()
+		print("Command name: \(commandName)")
+		
+		let commandKeyName = "\(commandName)CommandKey"
+		
+		return [
+			"""
+			struct \(raw: commandKeyName) : FocusedValueKey {
+				typealias Value = (Bool, () -> Void)
+			}
+			""",
+			"""
+			extension FocusedValues {
+				var \(raw: minorCommandName)Command : \(raw: commandKeyName).Value? {
+					get {
+						self[\(raw: commandKeyName).self]
+					}
+					set {
+						self[\(raw: commandKeyName).self] = newValue
+					}
+				}
+			}
+			""",
+			"""
+			extension View {
+				func on\(raw: commandName)(disabled: Bool = false, perform: @escaping () -> ()) -> some View {
+					self.focusedSceneValue(\\.\(raw: minorCommandName)Command, (disabled, perform))
+				}
+			}
+			"""]
+	}
+	
+}
+
+
+
+enum
+FocusedCommandMacroError : Error, CustomStringConvertible
+{
+	case requiresStaticStringLiteral
+
+	var
+	description: String
+	{
+		switch self
+		{
+			case .requiresStaticStringLiteral:
+				return "#FocusedCommand requires a static string literal command name"
+		}
+	}
 }
