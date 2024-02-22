@@ -14,22 +14,22 @@ would expand to
 
 ```swift
 struct DuplicateCommandKey : FocusedValueKey {
-	typealias Value = (Bool, () -> Void)
+    typealias Value = (Bool, () -> Void)
 }
 extension FocusedValues {
-	var duplicateCommand : DuplicateCommandKey.Value? {
-		get {
-			self [DuplicateCommandKey.self]
-		}
-		set {
-			self [DuplicateCommandKey.self] = newValue
-		}
-	}
+    var duplicateCommand : DuplicateCommandKey.Value? {
+        get {
+            self [DuplicateCommandKey.self]
+        }
+        set {
+            self [DuplicateCommandKey.self] = newValue
+        }
+    }
 }
 extension View {
-	func onDuplicate(disabled: Bool = false, perform: @escaping () -> ()) -> some View {
-		self.focusedSceneValue(\.duplicateCommand, (disabled, perform))
-	}
+    func onDuplicate(disabled: Bool = false, perform: @escaping () -> ()) -> some View {
+        self.focusedSceneValue(\.duplicateCommand, (disabled, perform))
+    }
 }
 ```
 
